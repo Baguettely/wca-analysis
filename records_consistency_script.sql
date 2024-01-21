@@ -285,7 +285,7 @@ CREATE TEMPORARY TABLE t4 AS
     	ELSE NULL END AS calculated_average
   FROM t3;
 -- Compares calculated records from t4 to assigned records and flags inconsistencies.
-CREATE TABLE records_assignments AS
+CREATE TABLE records_assignment AS
 SELECT 
   t4.*, 
   CASE WHEN t4.stored_single IS NOT NULL 
