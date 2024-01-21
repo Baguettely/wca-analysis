@@ -109,15 +109,15 @@ CREATE TEMPORARY TABLE t1 AS
     rn.round, 
     RANK() OVER (
       PARTITION BY 
-      r.countryId, 
-      r.eventId, 
-      IF(rd.round_date IS NOT NULL, rd.round_date, c.start_date) 
+      	r.countryId, 
+      	r.eventId, 
+      	IF(rd.round_date IS NOT NULL, rd.round_date, c.start_date) 
       ORDER BY r.best
     ) AS day_best_single, 
     RANK() OVER(
       PARTITION BY 
-      r.countryId, 
-      r.eventId, 
+      	r.countryId, 
+      	r.eventId, 
       IF(rd.round_date IS NOT NULL, rd.round_date, c.start_date) 
       ORDER BY 
         CASE WHEN r.average > 0 THEN r.average ELSE 999999999999 END
@@ -223,8 +223,7 @@ CREATE TEMPORARY TABLE t3 AS
         CASE WHEN average > 0 AND average <= oca.old_CR_average THEN average END
         ) OVER(
         PARTITION BY t2.eventId, c.continentId 
-        ORDER BY 
-          t2.round_date, t2.average
+        ORDER BY t2.round_date, t2.average
       ) = t2.average, 
       1, 0) CRaverage, 
     IF(
@@ -245,13 +244,18 @@ CREATE TEMPORARY TABLE t3 AS
       ) = t2.average, 
       1, 0) WRaverage 
   FROM t2 
-    JOIN Countries c ON c.id = t2.countryId 
-    LEFT JOIN old_cr_singles ocs ON ocs.continentId = c.continentId 
-    AND t2.eventId = ocs.eventId 
-    LEFT JOIN old_cr_averages oca ON oca.continentId = c.continentId 
-    AND t2.eventId = oca.eventId 
-    LEFT JOIN old_wr_singles ows ON t2.eventId = ows.eventId 
-    LEFT JOIN old_wr_averages owa ON t2.eventId = owa.eventId 
+    JOIN Countries c 
+	ON c.id = t2.countryId 
+    LEFT JOIN old_cr_singles ocs 
+	ON ocs.continentId = c.continentId 
+   	AND t2.eventId = ocs.eventId 
+    LEFT JOIN old_cr_averages oca
+	ON oca.continentId = c.continentId 
+       AND t2.eventId = oca.eventId 
+    LEFT JOIN old_wr_singles ows 
+	ON t2.eventId = ows.eventId 
+    LEFT JOIN old_wr_averages owa 
+	ON t2.eventId = owa.eventId 
   WHERE 
     t2.stored_single IS NOT NULL 
     OR t2.stored_average IS NOT NULL 
@@ -272,13 +276,13 @@ CREATE TEMPORARY TABLE t4 AS
     t3.stored_single, 
     t3.stored_average, 
     CASE WHEN t3.WRsingle = 1 THEN "WR" 
-    WHEN t3.CRsingle = 1 THEN t3.cr_id 
-    WHEN t3.NRsingle = 1 THEN "NR" 
-    ELSE NULL END AS calculated_single, 
+    	WHEN t3.CRsingle = 1 THEN t3.cr_id 
+    	WHEN t3.NRsingle = 1 THEN "NR" 
+    	ELSE NULL END AS calculated_single, 
     CASE WHEN t3.WRaverage = 1 THEN "WR" 
-    WHEN t3.CRaverage = 1 THEN t3.cr_id 
-    WHEN t3.NRaverage = 1 THEN "NR" 
-    ELSE NULL END AS calculated_average
+    	WHEN t3.CRaverage = 1 THEN t3.cr_id 
+    	WHEN t3.NRaverage = 1 THEN "NR" 
+    	ELSE NULL END AS calculated_average
   FROM t3;
 -- Compares calculated records from t4 to assigned records and flags inconsistencies.
 CREATE TABLE records_assignments AS
