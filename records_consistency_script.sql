@@ -6,7 +6,7 @@ An inconsistency between an assigned record and a calculated record indicates an
 Columns "single_action" and "average_action" indicate which action to take to correct this records assignment.
 
 Eleanor Sinnott
-Last edited: 20/01/2024
+Last edited: 21/01/2024
 */
 
 SET @Year = 2023;
