@@ -4,10 +4,11 @@ This script analyses the WCA database for record consistency.
 It calculates all single and average records in a selected year and creates the table records_assignment which includes all results that include an assigned and/or calculated single or average record.
 An inconsistency between an assigned record and a calculated record indicates an incorrectly assigned record.
 Columns "single_action" and "average_action" indicate which action to take to correct this records assignment.
-Column "query" outputs an SQL update statement that you can run to correct the incorrectly assigned record.
+
+Please ensure the mysql.time_zone Table is installed before running.
 
 Eleanor Sinnott
-Last edited: 21/02/2024
+Last edited: 22/01/2024
 */
 
 SET collation_connection = 'utf8mb4_unicode_ci';
@@ -228,14 +229,17 @@ CREATE TEMPORARY TABLE t3 AS
     t2.*,
     IF(
       MIN(
-        CASE WHEN t2.best <= ocs.old_CR_single THEN best END
+        CASE WHEN t2.best <= ocs.old_CR_single OR ocs.old_CR_single IS NULL 
+        THEN best END
       ) OVER(PARTITION BY t2.eventId, c.continentId
         ORDER BY t2.round_date, t2.best
       ) = t2.best,
       1, 0) CRsingle,
     IF(
       MIN(
-        CASE WHEN average > 0 AND average <= oca.old_CR_average THEN average END
+        CASE WHEN average > 0 
+             AND (average <= oca.old_CR_average OR oca.old_CR_average IS NULL) 
+             THEN average END
         ) OVER(
         PARTITION BY t2.eventId, c.continentId
         ORDER BY t2.round_date, t2.average
@@ -243,7 +247,8 @@ CREATE TEMPORARY TABLE t3 AS
       1, 0) CRaverage,
     IF(
       MIN(
-        CASE WHEN t2.best <= ows.old_WR_single THEN best END
+        CASE WHEN t2.best <= ows.old_WR_single OR ows.old_WR_single IS NULL 
+        THEN best END
       ) OVER(
         PARTITION BY t2.eventId
         ORDER BY t2.round_date, t2.best
@@ -252,7 +257,8 @@ CREATE TEMPORARY TABLE t3 AS
     IF(
       MIN(
         CASE WHEN average > 0
-        AND average <= owa.old_WR_average THEN average END
+        AND (average <= owa.old_WR_average OR owa.old_WR_average IS NULL) 
+        THEN average END
       ) OVER(
         PARTITION BY t2.eventId
         ORDER BY t2.round_date, t2.average
@@ -332,16 +338,16 @@ SELECT
         CASE WHEN calculated_single <> ""
 	        AND stored_single <> calculated_single
 	        THEN CONCAT("UPDATE Results SET regionalSingleRecord = '", calculated_single, "' WHERE id = ", results_id, "; ")
-       	    WHEN calculated_single = ""
+        WHEN calculated_single = ""
 	        AND stored_single <> ""
 	        THEN CONCAT("UPDATE Results SET regionalSingleRecord = NULL WHERE id = ", results_id, "; ")
             ELSE "" END,
         CASE WHEN calculated_average <> ""
 	        AND stored_average <> calculated_average
 	        THEN CONCAT("UPDATE Results SET regionalAverageRecord = '", calculated_average, "' WHERE id = ", results_id, "; ")
-           WHEN calculated_average = ""
+        WHEN calculated_average = ""
 	        AND stored_average <> ""
 	    THEN CONCAT("UPDATE Results SET regionalAverageRecord = NULL WHERE id = ", results_id, "; ")
            ELSE "" END
-    ) AS query
+    ) AS Query
 FROM t4;
