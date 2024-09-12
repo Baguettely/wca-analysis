@@ -8,11 +8,11 @@ Columns "single_action" and "average_action" indicate which action to take to co
 Please ensure the mysql.time_zone Table is installed before running.
 
 Eleanor Sinnott
-Last edited: 22/01/2024
+Last edited: 2024-09-12
 */
 
 SET collation_connection = 'utf8mb4_unicode_ci';
-SET @Year = 2023;
+SET @Year = 2024;
 -- Determines the date of each round with a WCA schedule per the date of the latest end time of that round in the schedule, in the local timezone (per Regulation 9i2).
 DROP TEMPORARY TABLE IF EXISTS round_dates;
 CREATE TEMPORARY TABLE round_dates AS
@@ -48,7 +48,7 @@ CREATE TEMPORARY TABLE round_numbers AS
         r.eventId,
         r.roundTypeId
       FROM Results r
-      WHERE RIGHT(r.competitionId, 4) = @Year
+      WHERE RIGHT(r.competitionId, 4) >= @Year
     ) t0
     JOIN RoundTypes rt ON t0.roundTypeId = rt.id;
 -- Fetches the NR singles of each country as of the end of the previous year.
@@ -163,7 +163,7 @@ CREATE TEMPORARY TABLE t1 AS
 	ON ona.countryId = r.countryId
     	AND ona.eventId = r.eventId
   WHERE
-    RIGHT(r.competitionId, 4) = @Year
+    RIGHT(r.competitionId, 4) >=@Year
     AND r.best > 0
     AND (
      (r.best <= ons.old_NR_single OR ons.old_NR_single IS NULL)
@@ -308,8 +308,6 @@ CREATE TEMPORARY TABLE t4 AS
     	ELSE "" END AS calculated_average
   FROM t3;
 -- Compares calculated records from t4 to assigned records and flags inconsistencies.
-DROP TABLE IF EXISTS records_assignment;
-CREATE TABLE records_assignment AS
 SELECT
   t4.*,
   CASE WHEN t4.stored_single <> ""
@@ -350,4 +348,5 @@ SELECT
 	    THEN CONCAT("UPDATE Results SET regionalAverageRecord = NULL WHERE id = ", results_id, "; ")
            ELSE "" END
     ) AS Query
-FROM t4;
+FROM t4
+WHERE stored_single <> calculated_single OR stored_average <> calculated_average;
