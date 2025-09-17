@@ -12,7 +12,7 @@ Last edited: 2025-09-17
 */
 
 SET collation_connection = 'utf8mb4_unicode_ci';
-SET @Year = 2024;
+SET @Year = 2019;
 -- Determines the date of each round with a WCA schedule per the date of the latest end time of that round in the schedule, in the local timezone (per Regulation 9i2).
 DROP TABLE IF EXISTS round_dates;
 CREATE TEMPORARY TABLE round_dates AS
